@@ -30,11 +30,17 @@ def save_tweet(tweet):
         # Horário no fuso de Brasília
         created_at_br = tweet.created_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("America/Sao_Paulo"))
         
+        author_username = getattr(tweet, 'author_username', None)
+        followers_count = getattr(tweet, 'author_followers_count', 0) if hasattr(tweet, 'author_followers_count') else 0
+        verified = getattr(tweet, 'author_verified', False) if hasattr(tweet, 'author_verified') else False
+
         data = {
             "tweet_id": str(tweet.id),
             "text": tweet.text,
             "author_id": str(tweet.author_id),
-            "author_username": tweet.author_username if hasattr(tweet, 'author_username') else None,
+            "author_username": author_username,
+            "followers_count": followers_count,
+            "verified": verified,
             "created_at": created_at_br.isoformat(),
             "product": classify_product(tweet.text),
             "likes": tweet.public_metrics.get("like_count", 0),
@@ -48,10 +54,11 @@ def save_tweet(tweet):
         }
         
         supabase.table("tweets_copa").upsert(data, on_conflict="tweet_id").execute()
-        logging.info(f"✅ Tweet salvo | Produto: {data['product']} | Likes: {data['likes']} | RT: {data['retweets']} | User: {data['author_username']}")
+        
+        logging.info(f"✅ Salvo | Produto: {data['product']} | Likes: {data['likes']} | RT: {data['retweets']} | Followers: {followers_count} | User: {author_username}")
         
     except Exception as e:
-        logging.error(f"Erro ao salvar tweet {tweet.id}: {e}")
+        logging.error(f"Erro ao salvar tweet {getattr(tweet, 'id', 'unknown')}: {e}")
 
 class MyStream(tweepy.StreamingClient):
     def on_tweet(self, tweet):
@@ -74,5 +81,5 @@ if __name__ == "__main__":
     print("✅ Aguardando tweets em tempo real...")
     stream.filter(
         tweet_fields=["created_at", "author_id", "public_metrics", "lang"],
-        user_fields=["username"]
+        user_fields=["username", "followers_count", "verified"]
     )
