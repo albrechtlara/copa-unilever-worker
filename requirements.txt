@@ -1,0 +1,3 @@
+tweepy
+supabase
+python-dotenv
