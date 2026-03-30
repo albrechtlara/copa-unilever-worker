@@ -4,7 +4,7 @@ from supabase import create_client, Client
 import tweepy
 
 # ================== CREDENCIAIS ==================
-X_BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAALGh8gEAAAAAT07x5eE2NqRkAgy9ixSYAyfk0y0%3DrVk794xJCZHSQRSGj5zeMOwdGkvE2uKWYj9KvEn5JfMd9D17ug"
+X_BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAPmh8gEAAAAAjuhObuQ4i2GweJu1HC8kwtGn%2B7I%3DpvAoJHS1n7WWQSCXqyqKhV9kuZIroEXEGmDzM6drhVcRQJerae"
 
 SUPABASE_URL = "https://mncnvmalmxpbiojcqqjo.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uY252bWFsbXhwYmlvamNxcWpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE1MTQsImV4cCI6MjA5MDQ2NzUxNH0.lBgvhixDr98ne1HuqeY0YFzXRyAb2yoRRH1Fn74Z0vk"
