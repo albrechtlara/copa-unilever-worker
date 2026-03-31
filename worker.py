@@ -27,15 +27,9 @@ def classify_product(text: str) -> str:
 
 def save_tweet(tweet):
     try:
-        # Horário convertido para Brasília
         created_at_br = tweet.created_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("America/Sao_Paulo"))
         
-        # Tenta pegar username de várias formas
-        author_username = None
-        if hasattr(tweet, 'author_username') and tweet.author_username:
-            author_username = tweet.author_username
-        elif hasattr(tweet, 'data') and isinstance(tweet.data, dict):
-            author_username = tweet.data.get('author_username')
+        author_username = getattr(tweet, 'author_username', None)
 
         data = {
             "tweet_id": str(tweet.id),
@@ -55,8 +49,7 @@ def save_tweet(tweet):
         }
         
         supabase.table("tweets_copa").upsert(data, on_conflict="tweet_id").execute()
-        
-        logging.info(f"✅ Salvo | {data['product']} | Likes: {data['likes']} | RT: {data['retweets']} | User: {author_username or 'NULL'} | {created_at_br.strftime('%H:%M')}")
+        logging.info(f"✅ Salvo | {data['product']} | Likes:{data['likes']} RT:{data['retweets']} | User:{author_username or 'NULL'}")
 
     except Exception as e:
         logging.error(f"Erro ao salvar tweet {getattr(tweet, 'id', 'unknown')}: {e}")
@@ -74,6 +67,10 @@ class MyStream(tweepy.StreamingClient):
         time.sleep(15)
         return True
 
+    def on_closed(self, response):
+        logging.warning("Stream fechado pela X")
+        return True
+
 if __name__ == "__main__":
     print("🚀 Iniciando Worker Social Listening - Unilever Copa 2026")
     print("📡 Conectando ao Filtered Stream da X...")
@@ -83,3 +80,4 @@ if __name__ == "__main__":
     stream.filter(
         tweet_fields=["created_at", "author_id", "public_metrics", "lang"]
     )
+    
