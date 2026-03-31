@@ -27,9 +27,15 @@ def classify_product(text: str) -> str:
 
 def save_tweet(tweet):
     try:
+        # Horário convertido para Brasília
         created_at_br = tweet.created_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("America/Sao_Paulo"))
         
-        author_username = getattr(tweet, 'author_username', None)
+        # Tenta pegar username de várias formas
+        author_username = None
+        if hasattr(tweet, 'author_username') and tweet.author_username:
+            author_username = tweet.author_username
+        elif hasattr(tweet, 'data') and isinstance(tweet.data, dict):
+            author_username = tweet.data.get('author_username')
 
         data = {
             "tweet_id": str(tweet.id),
@@ -49,8 +55,9 @@ def save_tweet(tweet):
         }
         
         supabase.table("tweets_copa").upsert(data, on_conflict="tweet_id").execute()
-        logging.info(f"✅ Salvo | Produto: {data['product']} | Likes: {data['likes']} | RT: {data['retweets']} | User: {author_username}")
         
+        logging.info(f"✅ Salvo | {data['product']} | Likes: {data['likes']} | RT: {data['retweets']} | User: {author_username or 'NULL'} | {created_at_br.strftime('%H:%M')}")
+
     except Exception as e:
         logging.error(f"Erro ao salvar tweet {getattr(tweet, 'id', 'unknown')}: {e}")
 
@@ -64,7 +71,7 @@ class MyStream(tweepy.StreamingClient):
 
     def on_connection_error(self, error):
         logging.error(f"Erro de conexão: {error}")
-        time.sleep(10)
+        time.sleep(15)
         return True
 
 if __name__ == "__main__":
@@ -74,6 +81,5 @@ if __name__ == "__main__":
     stream = MyStream(X_BEARER_TOKEN)
     print("✅ Aguardando tweets em tempo real...")
     stream.filter(
-        tweet_fields=["created_at", "author_id", "public_metrics", "lang"],
-        user_fields=["username"]   # removido followers_count e verified
+        tweet_fields=["created_at", "author_id", "public_metrics", "lang"]
     )
